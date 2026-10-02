@@ -68,9 +68,9 @@ public class TrackedImages : MonoBehaviour
         foreach (var updatedImage in eventArgs.updated)
         {
             // Hide content when the image is not actively tracked (Limited / None)
-            bool visible = updatedImage.trackingState == TrackingState.Tracking;
-            foreach (Transform child in updatedImage.transform)
-                child.gameObject.SetActive(visible);
+            //bool visible = updatedImage.trackingState == TrackingState.Tracking;
+            //foreach (Transform child in updatedImage.transform)
+            //    child.gameObject.SetActive(visible);
         }
 
         foreach (var pair in eventArgs.removed)
