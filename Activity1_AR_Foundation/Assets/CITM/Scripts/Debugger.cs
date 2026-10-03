@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 public class VirtualCardDebugger : MonoBehaviour
 {
     public GameManager gameManager;
+    private CardAppearEffect cardAppearEffect;
 
     [Header("Models 3D")]
     public GameObject[] pokemonPrefabs;
@@ -17,11 +18,13 @@ public class VirtualCardDebugger : MonoBehaviour
     // Lista de memoria para guardar todas las cartas creadas y poderlas destruir si se reinicia el juego
     private List<GameObject> spawnedCards = new List<GameObject>();
 
-    // Spawnear 8 cartas virtuales
     public void SpawnVirtualCards()
     {
         ClearVirtualCards();
-        gameManager.StartGameWithCards(36); // Avisar al GameManager que habrán 8 cartas y 4 parejas
+        gameManager.StartGameWithCards(36);// Avisar al GameManager que habran 8 cartas y 4 parejas
+
+        if (cardAppearEffect == null)
+            cardAppearEffect = FindAnyObjectByType<CardAppearEffect>();
 
         List<string> cardNames = new List<string>();
         for (int i = 1; i <= 18; i++)
@@ -90,6 +93,7 @@ public class VirtualCardDebugger : MonoBehaviour
                 clicker.cardId = cardContainer.name;
                 clicker.cardName = pkmName;
                 clicker.manager = gameManager;
+                clicker.appearEffect = cardAppearEffect;
 
                 // Pokemon
                 if (pokemonPrefabs != null && pkmIndex < pokemonPrefabs.Length)
@@ -154,6 +158,8 @@ public class VirtualCardClick : MonoBehaviour
     public string cardName; // Nombre asignado, image2
     public GameManager manager;
     public GameObject pokemonModel;
+    public CardAppearEffect appearEffect; // Efecto de la aparicion
+
     private bool isFaceUp = false; // Empieza boca abajo
     private bool isAnimating = false;
 
@@ -170,6 +176,12 @@ public class VirtualCardClick : MonoBehaviour
     {
         isAnimating = true;
 
+        // Animacion de desaparecer si se va a girar
+        if (!turningFaceUp && appearEffect != null && pokemonModel != null)
+        {
+            appearEffect.PlayVirtualEffect(pokemonModel.transform, false);
+        }
+
         Quaternion startRotation = transform.localRotation;
         Quaternion endRotation = turningFaceUp ? Quaternion.Euler(0, 0, 180) : Quaternion.identity;
 
@@ -185,10 +197,21 @@ public class VirtualCardClick : MonoBehaviour
             // Girar suavemente
             transform.localRotation = Quaternion.Slerp(startRotation, endRotation, percentage);
 
-            // A la mitad del giro entonces mostrar o ocultar el pokemon
+            // A la mitad del giro entonces mostrar o ocultar el pokemon y efectos
             if (percentage >= 0.5f && !modelSwitched)
             {
-                if (pokemonModel != null) pokemonModel.SetActive(turningFaceUp);
+                if (turningFaceUp)
+                {
+                    if (appearEffect != null && pokemonModel != null)
+                        appearEffect.PlayVirtualEffect(pokemonModel.transform, true);
+                    else if (pokemonModel != null)
+                        pokemonModel.SetActive(true);
+                }
+                else if (appearEffect == null && pokemonModel != null)
+                {
+                    pokemonModel.SetActive(false);
+                }
+
                 modelSwitched = true;
             }
 

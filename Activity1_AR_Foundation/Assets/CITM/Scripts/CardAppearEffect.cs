@@ -78,6 +78,27 @@ public class CardAppearEffect : MonoBehaviour
             Play(model, appear: false);
     }
 
+    public void PlayVirtualEffect(Transform model, bool appear)
+    {
+        // Aplicar el efecto en las cartas virtuales de modo Debug
+        if (appear)
+        {
+            if (!baseScales.ContainsKey(model))
+                baseScales[model] = model.localScale;
+
+            model.gameObject.SetActive(true);
+
+            if (particlesPrefab != null)
+            {
+                var ps = Instantiate(particlesPrefab, model.position, model.rotation);
+                ps.Play();
+                Destroy(ps.gameObject, 3f);
+            }
+        }
+
+        Play(model, appear);
+    }
+
     private void Play(Transform model, bool appear)
     {
         // Si había otra animación en este modelo, se corta y la nueva sigue desde la forma actual
