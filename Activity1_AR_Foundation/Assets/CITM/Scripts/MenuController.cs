@@ -10,20 +10,17 @@ public class MenuController : MonoBehaviour
     [Header("Game Scene")]
     public string gameSceneName = "GameScene";
 
-    // Called by the Start button
     public void StartGame()
     {
         SceneManager.LoadScene(gameSceneName);
     }
 
-    // Called by the Tutorial button
     public void ShowTutorial()
     {
         menuUI.SetActive(false);
         tutorialUI.SetActive(true);
     }
 
-    // Optional: Call this from a "Back" button in the tutorial
     public void HideTutorial()
     {
         tutorialUI.SetActive(false);
