@@ -168,6 +168,12 @@ public class VirtualCardClick : MonoBehaviour
         // Si ya se esta girando entonces ignorar el click nuevo
         if (isAnimating) return;
 
+        // Si la carta esta boca abajo pregunta antes de levantarla si el GameManager le deja, por si hubiesen 2 ya bloqueadas
+        if (!isFaceUp && !manager.CanFlipNewCard(cardId))
+        {
+            return; // Bloquear el click
+        }
+
         isFaceUp = !isFaceUp;
         StartCoroutine(FlipAnimation(isFaceUp));
     }

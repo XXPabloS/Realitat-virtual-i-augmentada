@@ -30,6 +30,9 @@ public class GameManager : MonoBehaviour
     // Lista para guardar las cartas que ya tienen pareja
     private HashSet<string> matchedCards = new HashSet<string>();
 
+    // Bloquea el turno si fallas y te obliga a girar las dos cartas
+    private bool isWaitingForReset = false;
+
     private void OnEnable()
     {
         // Suscribirse al evento del flipDetector
@@ -65,6 +68,7 @@ public class GameManager : MonoBehaviour
         matchedCards.Clear();
         firstCardId = null;
         secondCardId = null;
+        isWaitingForReset = false;
 
         setupPanel.SetActive(false);
         gamePanel.SetActive(true);
@@ -81,6 +85,7 @@ public class GameManager : MonoBehaviour
         matchedCards.Clear();
         firstCardId = null;
         secondCardId = null;
+        isWaitingForReset = false;
 
         // Borrar si habian cartas virtuales, modo debug del ordenador
         VirtualCardDebugger debugger = FindAnyObjectByType<VirtualCardDebugger>();
@@ -112,15 +117,35 @@ public class GameManager : MonoBehaviour
         ProcessCardFlippedDown(img.trackableId.ToString());
     }
 
+    // Comprobar si se permite girar una carta
+    public bool CanFlipNewCard(string cardId)
+    {
+        if (totalPairs == 0) return false;
+        if (matchedCards.Contains(cardId)) return false;
+
+        // Bloquea que se pueda girar nada si esta esperando
+        if (isWaitingForReset) return false;
+
+        // Si ya hay dos levantadas, NO se puede levantar una tercera.
+        if (firstCardId != null && secondCardId != null) return false;
+
+        return true;
+    }
+
     // Detectar si son pareja
     public void ProcessCardFlippedUp(string cardId, string cardName)
     {
         // Si aun no ha empezado el juego pero hay dos cartas ya levantadas se ignora
         if (totalPairs == 0 || matchedCards.Contains(cardId)) return;
         // Si ya hay dos cartas levantadas no pilla la tercera para hacer el check
-        if (firstCardId != null && secondCardId != null) return;
+        if (isWaitingForReset || (firstCardId != null && secondCardId != null))
+        {
+            // Avisa al jugador de que no sirve de nada girar cartas porque esta esperando que gires esas dos cartas
+            instructionsText.text = "Turn the previous cards face down first!";
+            return;
+        }
 
-        // Entra aqui si es la primera carta que se levanta en el turno
+        // Entra aqui si es la primera carta que se levanta en el turno o si es la logica normal
         if (firstCardId == null)
         {
             firstCardId = cardId;
@@ -145,10 +170,15 @@ public class GameManager : MonoBehaviour
         if (firstCardId == cardId) firstCardId = null;
         if (secondCardId == cardId) secondCardId = null;
 
-        // Si no hay ninguna carta girada
-        if (firstCardId == null && secondCardId == null && matchedPairs < totalPairs)
+        // Si el jugador ha girado AMBAS cartas entonces se levanta el bloquea y deja girar de nuevo
+        if (firstCardId == null && secondCardId == null)
         {
-            instructionsText.text = "Flip a card...";
+            isWaitingForReset = false;
+
+            if (matchedPairs < totalPairs)
+            {
+                instructionsText.text = "Flip a card...";
+            }
         }
     }
 
@@ -166,6 +196,7 @@ public class GameManager : MonoBehaviour
             // Limpiar el hueco de memoria
             firstCardId = null;
             secondCardId = null;
+            isWaitingForReset = false;
 
             // Comporbar si ya has ganado
             if (matchedPairs >= totalPairs)
@@ -180,7 +211,8 @@ public class GameManager : MonoBehaviour
         else
         {
             // Si no son iguales
-            instructionsText.text = "Mismatch! Turn them both face down.";
+            instructionsText.text = "Mismatch! Turn both face down.";
+            isWaitingForReset = true;
         }
     }
 
