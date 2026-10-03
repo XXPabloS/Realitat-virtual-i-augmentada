@@ -26,7 +26,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -3970243614316841892, guid: b37aa4387a09201478049f0b378f6591, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: -3970243614316841892, guid: b37aa4387a09201478049f0b378f6591, type: 3}
       propertyPath: m_LocalPosition.z
@@ -64,6 +64,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: aca646846964c1147884e09b738643ce, type: 2}
+    - target: {fileID: -349813003804876100, guid: b37aa4387a09201478049f0b378f6591, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.3
+      objectReference: {fileID: 0}
     - target: {fileID: 2107409826236812522, guid: b37aa4387a09201478049f0b378f6591, type: 3}
       propertyPath: m_Name
       value: Ho-Oh

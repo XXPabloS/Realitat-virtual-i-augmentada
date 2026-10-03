@@ -180,7 +180,7 @@ public class GameManager : MonoBehaviour
         else
         {
             // Si no son iguales
-            instructionsText.text = "Mismatch! Turn them face down.";
+            instructionsText.text = "Mismatch! Turn them both face down.";
         }
     }
 
