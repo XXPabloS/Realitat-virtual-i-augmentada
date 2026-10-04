@@ -12,6 +12,18 @@ public class CardAppearEffect : MonoBehaviour
     [SerializeField] private float appearTimePerStep = 0.18f;
     [SerializeField] private float disappearTimePerStep = 0.15f;
 
+    [System.Serializable]
+    private class PokemonSound
+    {
+        public GameObject prefab;
+        public AudioClip clip;
+    }
+
+    [Header("Pokemon SFX")]
+    [SerializeField] private PokemonSound[] pokemonSounds = new PokemonSound[0];
+    [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
+    private AudioSource sfxSource;
+
     // Forma del modelo en cada paso, como multiplicador de su tamaño normal
     private static readonly Vector3[] appearSteps =
     {
@@ -34,6 +46,10 @@ public class CardAppearEffect : MonoBehaviour
     private void Awake()
     {
         if (detector == null) detector = FindAnyObjectByType<CardFlipDetector>(); // por siaca
+        sfxSource = gameObject.AddComponent<AudioSource>();
+        sfxSource.playOnAwake = false;
+        sfxSource.loop = false;
+        sfxSource.spatialBlend = 0f;
     }
 
     private void OnEnable()
@@ -101,11 +117,30 @@ public class CardAppearEffect : MonoBehaviour
 
     private void Play(Transform model, bool appear)
     {
+        if (appear) PlayRevealSound(model);
+
         // Si había otra animación en este modelo, se corta y la nueva sigue desde la forma actual
         if (running.TryGetValue(model, out var current))
             StopCoroutine(current);
 
         running[model] = StartCoroutine(Animate(model, appear));
+    }
+
+    private void PlayRevealSound(Transform model)
+    {
+        string modelName = model.name.Replace("(Clone)", "");
+
+        foreach (var sound in pokemonSounds)
+        {
+            if (sound != null && sound.prefab != null && sound.clip != null)
+            {
+                if (sound.prefab.name == modelName)
+                {
+                    sfxSource.PlayOneShot(sound.clip, sfxVolume);
+                    return;
+                }
+            }
+        }
     }
 
     private IEnumerator Animate(Transform model, bool appear)
