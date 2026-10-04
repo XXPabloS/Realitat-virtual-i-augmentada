@@ -24,6 +24,11 @@ public class CardAppearEffect : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
     private AudioSource sfxSource;
 
+    [Header("Efectos de aparicion")]
+    [SerializeField] private bool layeredFx = true; // Destello y anillo generados por codigo
+    [SerializeField] private Color revealColor = Color.white; // Color del destello y el anillo
+    [SerializeField] private float virtualCardSize = 1f; // Tamano de las cartas virtuales para escalar los efectos
+
     // Forma del modelo en cada paso, como multiplicador de su tamaño normal
     private static readonly Vector3[] appearSteps =
     {
@@ -75,12 +80,9 @@ public class CardAppearEffect : MonoBehaviour
 
         model.gameObject.SetActive(true);
 
-        if (particlesPrefab != null)
-        {
-            var ps = Instantiate(particlesPrefab, img.transform.position, img.transform.rotation);
-            ps.Play();
-            Destroy(ps.gameObject, 3f);
-        }
+        // img.size es el tamano fisico de la carta en metros
+        float cardSize = img.size.x > 0f ? Mathf.Max(img.size.x, img.size.y) : 0.1f;
+        SpawnRevealFx(img.transform.position, img.transform.rotation, cardSize);
 
         Play(model, appear: true);
     }
@@ -104,12 +106,7 @@ public class CardAppearEffect : MonoBehaviour
 
             model.gameObject.SetActive(true);
 
-            if (particlesPrefab != null)
-            {
-                var ps = Instantiate(particlesPrefab, model.position, model.rotation);
-                ps.Play();
-                Destroy(ps.gameObject, 3f);
-            }
+            SpawnRevealFx(model.position, model.rotation, virtualCardSize);
         }
 
         Play(model, appear);
@@ -126,20 +123,49 @@ public class CardAppearEffect : MonoBehaviour
         running[model] = StartCoroutine(Animate(model, appear));
     }
 
-    private void PlayRevealSound(Transform model)
+    // Busca la entrada de la lista que corresponde a este modelo (por el nombre del prefab)
+    private PokemonSound FindEntry(Transform model)
     {
         string modelName = model.name.Replace("(Clone)", "");
 
         foreach (var sound in pokemonSounds)
         {
-            if (sound != null && sound.prefab != null && sound.clip != null)
-            {
-                if (sound.prefab.name == modelName)
-                {
-                    sfxSource.PlayOneShot(sound.clip, sfxVolume);
-                    return;
-                }
-            }
+            if (sound != null && sound.prefab != null && sound.prefab.name == modelName)
+                return sound;
+        }
+
+        return null;
+    }
+
+    private void PlayRevealSound(Transform model)
+    {
+        PokemonSound entry = FindEntry(model);
+        if (entry != null && entry.clip != null)
+            sfxSource.PlayOneShot(entry.clip, sfxVolume);
+    }
+
+    // Particulas del prefab + destello y anillo
+    private void SpawnRevealFx(Vector3 pos, Quaternion rot, float cardSize)
+    {
+        if (particlesPrefab != null)
+        {
+            var ps = Instantiate(particlesPrefab, pos, rot);
+            ps.Play();
+            Destroy(ps.gameObject, 3f);
+        }
+
+        if (layeredFx)
+        {
+            // Sprites planos sobre la carta, un pelin elevados
+            Quaternion flat = rot * Quaternion.Euler(90f, 0f, 0f);
+            Vector3 basePos = pos + rot * Vector3.up * (cardSize * 0.02f);
+
+            // Destello corto
+            SpriteBurst.Spawn(SpriteBurst.Shape.Glow, basePos, flat,
+                              revealColor, cardSize * 0.3f, cardSize * 1.3f, 0.3f);
+            // Anillo
+            SpriteBurst.Spawn(SpriteBurst.Shape.Ring, basePos, flat,
+                              revealColor, cardSize * 0.2f, cardSize * 1.6f, 0.6f);
         }
     }
 
@@ -149,7 +175,7 @@ public class CardAppearEffect : MonoBehaviour
         float timePerStep = appear ? appearTimePerStep : disappearTimePerStep;
         Vector3 baseScale = baseScales[model];
 
-        // Aparicion: arranca en el primer paso. Desaparición: arranca desde la forma actual.
+        // Aparicionm, arranca en el primer paso. Desaparicion, arranca desde la forma actual.
         Vector3 from = steps[0];
         if (!appear)
         {

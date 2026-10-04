@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.XR.ARFoundation;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,14 +19,24 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI instructionsText;
 
+    [Header("Feedback")]
+    [SerializeField] private float winPanelDelay = 1.2f; // Espera antes de enseñar el panel de victoria
+
+    // Eventos para el feedback visual (MatchFeedback), pasan los modelos 3D de las dos cartas
+    public event System.Action<Transform, Transform> OnMatch;
+    public event System.Action<Transform, Transform> OnMismatch;
+    public event System.Action OnGameReset;
+
     private int totalPairs = 0;
     private int matchedPairs = 0;
 
     // Variables para guardar los IDs de las cartas que se han levantado
     private string firstCardId = null;
+    private Transform firstCardModel = null;
     private string firstCardName = null;
     private string secondCardId = null;
     private string secondCardName = null;
+    private Transform secondCardModel = null;
 
     // Lista para guardar las cartas que ya tienen pareja
     private HashSet<string> matchedCards = new HashSet<string>();
@@ -67,8 +78,12 @@ public class GameManager : MonoBehaviour
         matchedPairs = 0;
         matchedCards.Clear();
         firstCardId = null;
+        firstCardModel = null;
         secondCardId = null;
+        secondCardModel = null;
         isWaitingForReset = false;
+
+        OnGameReset?.Invoke();
 
         setupPanel.SetActive(false);
         gamePanel.SetActive(true);
@@ -84,8 +99,12 @@ public class GameManager : MonoBehaviour
         matchedPairs = 0;
         matchedCards.Clear();
         firstCardId = null;
+        firstCardModel = null;
         secondCardId = null;
+        secondCardModel = null;
         isWaitingForReset = false;
+
+        OnGameReset?.Invoke();
 
         // Borrar si habian cartas virtuales, modo debug del ordenador
         VirtualCardDebugger debugger = FindAnyObjectByType<VirtualCardDebugger>();
@@ -109,7 +128,8 @@ public class GameManager : MonoBehaviour
     private void HandlePhysicalCardUp(ARTrackedImage img)
     {
         // Si las gafas o el movil detecta la imagen fisica
-        ProcessCardFlippedUp(img.trackableId.ToString(), img.referenceImage.name);
+        Transform model = img.transform.childCount > 0 ? img.transform.GetChild(0) : null;
+        ProcessCardFlippedUp(img.trackableId.ToString(), img.referenceImage.name, model);
     }
 
     private void HandlePhysicalCardDown(ARTrackedImage img)
@@ -133,7 +153,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Detectar si son pareja
-    public void ProcessCardFlippedUp(string cardId, string cardName)
+    public void ProcessCardFlippedUp(string cardId, string cardName, Transform model = null)
     {
         // Si aun no ha empezado el juego pero hay dos cartas ya levantadas se ignora
         if (totalPairs == 0 || matchedCards.Contains(cardId)) return;
@@ -150,6 +170,7 @@ public class GameManager : MonoBehaviour
         {
             firstCardId = cardId;
             firstCardName = cardName;
+            firstCardModel = model;
             instructionsText.text = "Where is its match?";
         }
         // Si es la segunda carta del turno y además no es la misma id que la primera que la ha girado y vuelto a levantar
@@ -157,6 +178,7 @@ public class GameManager : MonoBehaviour
         {
             secondCardId = cardId;
             secondCardName = cardName;
+            secondCardModel = model;
 
             // Ver si son iguales
             CheckForMatch();
@@ -167,8 +189,8 @@ public class GameManager : MonoBehaviour
     public void ProcessCardFlippedDown(string cardId)
     {
         // Limpiar el hueco de esa carta en la memoria
-        if (firstCardId == cardId) firstCardId = null;
-        if (secondCardId == cardId) secondCardId = null;
+        if (firstCardId == cardId) { firstCardId = null; firstCardModel = null; }
+        if (secondCardId == cardId) { secondCardId = null; secondCardModel = null; }
 
         // Si el jugador ha girado AMBAS cartas entonces se levanta el bloquea y deja girar de nuevo
         if (firstCardId == null && secondCardId == null)
@@ -193,9 +215,12 @@ public class GameManager : MonoBehaviour
             // Aumentar el marcador en el HUD
             UpdateHUD();
 
+            OnMatch?.Invoke(firstCardModel, secondCardModel);
+
             // Limpiar el hueco de memoria
             firstCardId = null;
             secondCardId = null;
+            secondCardModel = null;
             isWaitingForReset = false;
 
             // Comporbar si ya has ganado
@@ -213,6 +238,7 @@ public class GameManager : MonoBehaviour
             // Si no son iguales
             instructionsText.text = "Mismatch! Turn both face down.";
             isWaitingForReset = true;
+            OnMismatch?.Invoke(firstCardModel, secondCardModel);
         }
     }
 
@@ -224,6 +250,15 @@ public class GameManager : MonoBehaviour
 
     private void WinGame()
     {
+        StartCoroutine(ShowWinPanelDelayed());
+    }
+
+    private IEnumerator ShowWinPanelDelayed()
+    {
+        yield return new WaitForSeconds(winPanelDelay);
+
+        if (totalPairs == 0 || matchedPairs < totalPairs) yield break;
+
         gamePanel.SetActive(false);
         winPanel.SetActive(true);
     }

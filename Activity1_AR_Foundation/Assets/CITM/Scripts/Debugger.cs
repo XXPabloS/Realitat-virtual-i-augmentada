@@ -228,7 +228,7 @@ public class VirtualCardClick : MonoBehaviour
         transform.localRotation = endRotation;
 
         // Aviso al GameManager
-        if (turningFaceUp) manager.ProcessCardFlippedUp(cardId, cardName);
+        if (turningFaceUp) manager.ProcessCardFlippedUp(cardId, cardName, pokemonModel != null ? pokemonModel.transform : null);
         else manager.ProcessCardFlippedDown(cardId);
 
         isAnimating = false; // Se puede volver a hacer click
