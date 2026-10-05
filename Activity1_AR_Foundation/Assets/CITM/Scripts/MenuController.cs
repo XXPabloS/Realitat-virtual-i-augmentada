@@ -8,6 +8,9 @@ public class MenuController : MonoBehaviour
     public GameObject menuUI;
     public GameObject tutorialUI;
 
+    [Header("Tutorial Pages")]
+    public GameObject[] tutorialPages;
+
     [Header("Game Scene")]
     public string gameSceneName = "GameScene";
 
@@ -16,10 +19,12 @@ public class MenuController : MonoBehaviour
     [SerializeField, Min(0f)] private float fadeOutDuration = 1f;
 
     private bool isStartingGame;
+    private int currentTutorialPage = 0;
 
     public void StartGame()
     {
         if (isStartingGame) return;
+
         isStartingGame = true;
         StartCoroutine(FadeOutAndStartGame());
     }
@@ -45,15 +50,49 @@ public class MenuController : MonoBehaviour
         SceneManager.LoadScene(gameSceneName);
     }
 
+    //Tutorial Pages Update
     public void ShowTutorial()
     {
         menuUI.SetActive(false);
         tutorialUI.SetActive(true);
+
+        currentTutorialPage = 0;
+        UpdateTutorialPage();
     }
 
     public void HideTutorial()
     {
         tutorialUI.SetActive(false);
         menuUI.SetActive(true);
+    }
+
+    public void NextTutorialPage()
+    {
+        if (currentTutorialPage < tutorialPages.Length - 1)
+        {
+            currentTutorialPage++;
+            UpdateTutorialPage();
+        }
+    }
+
+    public void PreviousTutorialPage()
+    {
+        if (currentTutorialPage > 0)
+        {
+            currentTutorialPage--;
+            UpdateTutorialPage();
+        }
+        else
+        {
+            HideTutorial();
+        }
+    }
+
+    private void UpdateTutorialPage()
+    {
+        for (int i = 0; i < tutorialPages.Length; i++)
+        {
+            tutorialPages[i].SetActive(i == currentTutorialPage);
+        }
     }
 }
