@@ -158,8 +158,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c39bb24e2bd7a482ca08117fb44b8e44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Image: {fileID: 2800000, guid: f2e8b1279ba491c47876366b68dde2b7, type: 3}
-  m_ImagePhysicalSizeMeters: {x: 0.5, y: 0.5}
+  m_Image: {fileID: 2800000, guid: fa1a9ab98be4d0d42af4da4ed219352f, type: 3}
+  m_ImagePhysicalSizeMeters: {x: 0.9, y: 1.5}
   m_QuadMesh: {fileID: 0}
   m_QuadMaterial: {fileID: 0}
   m_QuadMeshFilter: {fileID: 5367377974907842480}

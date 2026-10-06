@@ -58,6 +58,48 @@ public class TrackedImages : MonoBehaviour
                 case "Image4":
                     prefabToSpawn = prefabsToSpawn[3];
                     break;
+                case "Image5":
+                    prefabToSpawn = prefabsToSpawn[4];
+                    break;
+                case "Image6":
+                    prefabToSpawn = prefabsToSpawn[5];
+                    break;
+                case "Image7":
+                    prefabToSpawn = prefabsToSpawn[6];
+                    break;
+                case "Image8":
+                    prefabToSpawn = prefabsToSpawn[7];
+                    break;
+                case "Image9":
+                    prefabToSpawn = prefabsToSpawn[8];
+                    break;
+                case "Image10":
+                    prefabToSpawn = prefabsToSpawn[9];
+                    break;
+                case "Image11":
+                    prefabToSpawn = prefabsToSpawn[10];
+                    break;
+                case "Image12":
+                    prefabToSpawn = prefabsToSpawn[11];
+                    break;
+                case "Image13":
+                    prefabToSpawn = prefabsToSpawn[12];
+                    break;
+                case "Image14":
+                    prefabToSpawn = prefabsToSpawn[13];
+                    break;
+                case "Image15":
+                    prefabToSpawn = prefabsToSpawn[14];
+                    break;
+                case "Image16":
+                    prefabToSpawn = prefabsToSpawn[15];
+                    break;
+                case "Image17":
+                    prefabToSpawn = prefabsToSpawn[16];
+                    break;
+                case "Image18":
+                    prefabToSpawn = prefabsToSpawn[17];
+                    break;
             }
 
             if (prefabToSpawn == null) continue;
