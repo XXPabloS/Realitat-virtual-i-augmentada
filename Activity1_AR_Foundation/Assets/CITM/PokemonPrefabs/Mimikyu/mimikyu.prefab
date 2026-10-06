@@ -17,6 +17,18 @@ PrefabInstance:
       value: mimikyu
       objectReference: {fileID: 0}
     - target: {fileID: 8897093224900880590, guid: 41b549dcb4bfe7f49bd99626583a0229, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8897093224900880590, guid: 41b549dcb4bfe7f49bd99626583a0229, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8897093224900880590, guid: 41b549dcb4bfe7f49bd99626583a0229, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8897093224900880590, guid: 41b549dcb4bfe7f49bd99626583a0229, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
