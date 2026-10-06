@@ -21,16 +21,17 @@ public class VirtualCardDebugger : MonoBehaviour
     public void SpawnVirtualCards()
     {
         ClearVirtualCards();
-        gameManager.StartGameWithCards(36);// Avisar al GameManager que habran 8 cartas y 4 parejas
+        gameManager.StartGameWithCards(36);// Avisar al GameManager que habran 36 cartas y 18 parejas
 
         if (cardAppearEffect == null)
             cardAppearEffect = FindAnyObjectByType<CardAppearEffect>();
 
+        // GENERAR LAS PAREJAS DISTINTAS (_A y _B)
         List<string> cardNames = new List<string>();
         for (int i = 1; i <= 18; i++)
         {
-            cardNames.Add("Image" + i);
-            cardNames.Add("Image" + i);
+            cardNames.Add("Image" + i + "_A");
+            cardNames.Add("Image" + i + "_B");
         }
 
         // Mezcla las cartas para que no siempre sea igual el patron
@@ -50,7 +51,20 @@ public class VirtualCardDebugger : MonoBehaviour
             {
                 string pkmName = cardNames[index];
                 // Poner bien el indice porque en Unity empieza en 0
-                int pkmIndex = int.Parse(pkmName.Replace("Image", "")) - 1;
+                // Calcular el indice del pokemon
+                string baseName = pkmName;
+                if (pkmName.Contains("_")) baseName = pkmName.Split('_')[0];
+
+                int pkmIndex = 0;
+                string numberString = baseName.Replace("Image", "");
+                if (int.TryParse(numberString, out int parsedNum))
+                {
+                    pkmIndex = parsedNum - 1;
+                }
+
+                // Calcular el indice del material
+                int isB = pkmName.EndsWith("_B") ? 1 : 0;
+                int matIndex = (pkmIndex * 2) + isB;
 
                 // Crea el container del cubo, la 'carta'
                 GameObject cardContainer = new GameObject("VirtualCard_" + index);
@@ -82,8 +96,10 @@ public class VirtualCardDebugger : MonoBehaviour
                 frontFace.transform.localPosition = new Vector3(0, -0.011f, 0); // Un poco para abajo por lo mismo
                 frontFace.transform.localRotation = Quaternion.Euler(-90, 180, 0); // Y lo generamos mirando hacia el suelo
                 Destroy(frontFace.GetComponent<MeshCollider>());
-                if (cardFrontMaterials != null && pkmIndex < cardFrontMaterials.Length)
-                    frontFace.GetComponent<MeshRenderer>().material = cardFrontMaterials[pkmIndex];
+
+                // Asignar el material correspondiente (_A o _B)
+                if (cardFrontMaterials != null && matIndex >= 0 && matIndex < cardFrontMaterials.Length)
+                    frontFace.GetComponent<MeshRenderer>().material = cardFrontMaterials[matIndex];
 
                 // Box collider para poder hacer click
                 BoxCollider collider = cardVisual.AddComponent<BoxCollider>();
@@ -96,7 +112,7 @@ public class VirtualCardDebugger : MonoBehaviour
                 clicker.appearEffect = cardAppearEffect;
 
                 // Pokemon
-                if (pokemonPrefabs != null && pkmIndex < pokemonPrefabs.Length)
+                if (pokemonPrefabs != null && pkmIndex >= 0 && pkmIndex < pokemonPrefabs.Length)
                 {
                     GameObject pkm = Instantiate(pokemonPrefabs[pkmIndex], cardContainer.transform);
                     pkm.transform.localPosition = new Vector3(0, 0.05f, 0);
@@ -167,6 +183,8 @@ public class VirtualCardClick : MonoBehaviour
     {
         // Si ya se esta girando entonces ignorar el click nuevo
         if (isAnimating) return;
+
+        if (manager.IsCardMatched(cardId)) return;
 
         // Si la carta esta boca abajo pregunta antes de levantarla si el GameManager le deja, por si hubiesen 2 ya bloqueadas
         if (!isFaceUp && !manager.CanFlipNewCard(cardId))

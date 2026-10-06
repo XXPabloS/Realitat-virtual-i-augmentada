@@ -16,12 +16,6 @@ public class TrackedImages : MonoBehaviour
         // Fallback if the reference was not assigned in the Inspector
         if (m_TrackedImageManager == null)
             m_TrackedImageManager = FindAnyObjectByType<ARTrackedImageManager>();
-
-        if (m_TrackedImageManager == null)
-        {
-            Debug.LogError("TrackedImages: no ARTrackedImageManager found in the scene.");
-            enabled = false;
-        }
     }
 
     void OnEnable()
@@ -40,85 +34,42 @@ public class TrackedImages : MonoBehaviour
     {
         foreach (var newImage in eventArgs.added)
         {
-            string imageName = GetImageName(newImage);
-            Debug.Log($"Image added: {imageName}");
-            GameObject prefabToSpawn = null;
+            string fullImageName = GetImageName(newImage);
+            Debug.Log($"Image added: {fullImageName}");
 
-            switch (imageName)
+            // Extraer el nombre de la base del archivo, convierte "Image1_A" a "Image1"
+            string baseName = fullImageName;
+            if (fullImageName.Contains("_"))
             {
-                case "Image1":
-                    prefabToSpawn = prefabsToSpawn[0];
-                    break;
-                case "Image2":
-                    prefabToSpawn = prefabsToSpawn[1];
-                    break;
-                case "Image3":
-                    prefabToSpawn = prefabsToSpawn[2];
-                    break;
-                case "Image4":
-                    prefabToSpawn = prefabsToSpawn[3];
-                    break;
-                case "Image5":
-                    prefabToSpawn = prefabsToSpawn[4];
-                    break;
-                case "Image6":
-                    prefabToSpawn = prefabsToSpawn[5];
-                    break;
-                case "Image7":
-                    prefabToSpawn = prefabsToSpawn[6];
-                    break;
-                case "Image8":
-                    prefabToSpawn = prefabsToSpawn[7];
-                    break;
-                case "Image9":
-                    prefabToSpawn = prefabsToSpawn[8];
-                    break;
-                case "Image10":
-                    prefabToSpawn = prefabsToSpawn[9];
-                    break;
-                case "Image11":
-                    prefabToSpawn = prefabsToSpawn[10];
-                    break;
-                case "Image12":
-                    prefabToSpawn = prefabsToSpawn[11];
-                    break;
-                case "Image13":
-                    prefabToSpawn = prefabsToSpawn[12];
-                    break;
-                case "Image14":
-                    prefabToSpawn = prefabsToSpawn[13];
-                    break;
-                case "Image15":
-                    prefabToSpawn = prefabsToSpawn[14];
-                    break;
-                case "Image16":
-                    prefabToSpawn = prefabsToSpawn[15];
-                    break;
-                case "Image17":
-                    prefabToSpawn = prefabsToSpawn[16];
-                    break;
-                case "Image18":
-                    prefabToSpawn = prefabsToSpawn[17];
-                    break;
+                baseName = fullImageName.Split('_')[0];
             }
 
-            if (prefabToSpawn == null) continue;
-            var content = Instantiate(prefabToSpawn, newImage.transform); // child: follows the image
-            content.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-        }
+            // Calcular el indice del prefab
+            int pkmIndex = -1;
+            if (baseName.StartsWith("Image"))
+            {
+                string numberString = baseName.Replace("Image", "");
+                if (int.TryParse(numberString, out int num))
+                {
+                    pkmIndex = num - 1; // "Image1" es indice 0
+                }
+            }
 
-        foreach (var updatedImage in eventArgs.updated)
-        {
-            // Hide content when the image is not actively tracked (Limited / None)
-            //bool visible = updatedImage.trackingState == TrackingState.Tracking;
-            //foreach (Transform child in updatedImage.transform)
-            //    child.gameObject.SetActive(visible);
-        }
+            // Instanciar el modelo
+            if (pkmIndex >= 0 && pkmIndex < prefabsToSpawn.Length)
+            {
+                GameObject prefabToSpawn = prefabsToSpawn[pkmIndex];
+                if (prefabToSpawn != null)
+                {
+                    var content = Instantiate(prefabToSpawn, newImage.transform);
+                    content.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-        foreach (var pair in eventArgs.removed)
-        {
-            Debug.Log($"Image removed: {GetImageName(pair.Value)}");
-            // Children are destroyed along with the ARTrackedImage GameObject
+                    // Pongo esto aqui, se podria borrar si da error, pero se supone que sin esta linea
+                    // al detectar la carta el pokemon aparece al 100 por cien de su tamano al detectar la imagen
+                    // y luego el CardFlipDetector hace su animacion de crecer, con esto el pokemon nace invisible y hace lo de crecer.
+                    content.gameObject.SetActive(false);
+                }
+            }
         }
     }
 

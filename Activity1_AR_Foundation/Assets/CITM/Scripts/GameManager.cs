@@ -104,6 +104,8 @@ public class GameManager : MonoBehaviour
         secondCardModel = null;
         isWaitingForReset = false;
 
+        if (flipDetector != null) flipDetector.ResetDetector();
+
         OnGameReset?.Invoke();
 
         // Borrar si habian cartas virtuales, modo debug del ordenador
@@ -152,6 +154,24 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    public bool IsCardMatched(string cardId)
+    {
+        return matchedCards.Contains(cardId);
+    }
+
+    // Logica de parejas nueva
+    private string GetPokemonName(string rawName)
+    {
+        // Si se le pasa "Image5_B", devuelve "Image5"
+        if (string.IsNullOrEmpty(rawName)) return rawName;
+        int underscoreIndex = rawName.IndexOf('_');
+        if (underscoreIndex != -1)
+        {
+            return rawName.Substring(0, underscoreIndex);
+        }
+        return rawName;
+    }
+
     // Detectar si son pareja
     public void ProcessCardFlippedUp(string cardId, string cardName, Transform model = null)
     {
@@ -165,23 +185,25 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // Pillar el nombre de pokemon segun la carta
+        string pokemonName = GetPokemonName(cardName);
+
         // Entra aqui si es la primera carta que se levanta en el turno o si es la logica normal
         if (firstCardId == null)
         {
             firstCardId = cardId;
-            firstCardName = cardName;
+            firstCardName = pokemonName; // Se guarda "Image5" en vez de "Image5_A"
             firstCardModel = model;
             instructionsText.text = "Where is its match?";
         }
-        // Si es la segunda carta del turno y además no es la misma id que la primera que la ha girado y vuelto a levantar
+        // Si es la segunda carta del turno y ademas no es la misma id que la primera que la ha girado y vuelto a levantar
         else if (secondCardId == null && cardId != firstCardId)
         {
             secondCardId = cardId;
-            secondCardName = cardName;
+            secondCardName = pokemonName; // Se guarda "Image5" en vez de "Image5_B"
             secondCardModel = model;
 
-            // Ver si son iguales
-            CheckForMatch();
+            CheckForMatch(); // Como los dos son "Image5" se acierta
         }
     }
 

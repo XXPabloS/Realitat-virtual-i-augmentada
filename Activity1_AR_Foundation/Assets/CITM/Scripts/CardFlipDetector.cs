@@ -58,4 +58,11 @@ public class CardFlipDetector : MonoBehaviour
             OnCardFaceDown?.Invoke(img);
         }
     }
+
+    public void ResetDetector()
+    {
+        faceUp.Clear();
+        lastSeen.Clear();
+        toHide.Clear();
+    }
 }
