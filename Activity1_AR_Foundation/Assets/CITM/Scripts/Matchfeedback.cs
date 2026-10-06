@@ -9,7 +9,7 @@ public class MatchFeedback : MonoBehaviour
     [SerializeField] private GameManager gameManager;
 
     [Header("Timing")]
-    [SerializeField] private float feedbackDelay = 0.5f; // Para que el efecto salga cuando ya ha terminado de aparecer la segunda carta
+    [SerializeField] private float feedbackDelay = 0.5f; 
 
     [Header("Acierto")]
     [SerializeField] private Color matchColor = new Color(1f, 0.85f, 0.2f);
@@ -30,6 +30,10 @@ public class MatchFeedback : MonoBehaviour
     [SerializeField] private AudioClip mismatchClip;
     [SerializeField] private float shakeDuration = 0.4f;
     [SerializeField, Range(0.01f, 0.5f)] private float shakeAmount = 0.12f; // Proporcion de la altura del pokemon
+
+    [Header("Efectos sobre la carta")]
+    [SerializeField] private string cardVisualName = "CardVisual"; // Hijo de la carta que se usa para colocar y dimensionar los efectos
+    [SerializeField, Range(0.2f, 1.5f)] private float effectSizeRatio = 0.7f; // Proporcion del ancho de la carta, igual para todos los pokemon
 
     [Header("General")]
     [SerializeField, Range(0f, 1f)] private float sfxVolume = 1f;
@@ -257,14 +261,42 @@ public class MatchFeedback : MonoBehaviour
     }
 
     // Saca el punto de la base del pokemon, la rotacion para que los sprites queden planos
+    private bool MeasureCard(Transform card, out Bounds b)
+    {
+        b = new Bounds();
+
+        Transform visual = card.Find(cardVisualName);
+        if (visual == null) return false;
+
+        Renderer[] renderers = visual.GetComponentsInChildren<Renderer>();
+        if (renderers.Length == 0) return false;
+
+        b = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+            b.Encapsulate(renderers[i].bounds);
+
+        return true;
+    }
+
     private void GetPlacement(Transform model, Bounds bounds, out Vector3 basePoint, out Quaternion flatRot, out float size)
     {
         Transform reference = model.parent != null ? model.parent : model;
 
-        size = Mathf.Max(bounds.size.x, bounds.size.z);
+        if (MeasureCard(reference, out Bounds card))
+        {
+            size = Mathf.Min(card.size.x, card.size.z) * effectSizeRatio;
+            // Centro de la carta y altura de su parte de arriba
+            basePoint = new Vector3(card.center.x, card.max.y, card.center.z);
+        }
+        else
+        {
+            // Si no se encuentra la carta se usa el modelo 
+            size = Mathf.Max(bounds.size.x, bounds.size.z);
+            basePoint = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
+        }
 
         // Subido un poquito para que no clipee con la carta
-        basePoint = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z) + reference.up * (size * 0.05f);
+        basePoint += reference.up * (size * 0.05f);
         flatRot = reference.rotation * Quaternion.Euler(90f, 0f, 0f);
     }
 
