@@ -303,7 +303,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_SerializedLibrary: {fileID: 11400000, guid: e3f11cce0d233bb42b1bd803f35e2535, type: 2}
-  m_MaxNumberOfMovingImages: 10
+  m_MaxNumberOfMovingImages: 40
   m_TrackedImagePrefab: {fileID: 0}
 --- !u!114 &113353833
 MonoBehaviour:
@@ -582,6 +582,8 @@ MonoBehaviour:
   mismatchClip: {fileID: 0}
   shakeDuration: 0.4
   shakeAmount: 0.12
+  cardVisualName: CardVisual
+  effectSizeRatio: 0.7
   sfxVolume: 1
 --- !u!1 &402860574
 GameObject:
