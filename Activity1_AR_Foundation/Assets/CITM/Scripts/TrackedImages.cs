@@ -62,7 +62,7 @@ public class TrackedImages : MonoBehaviour
                 if (prefabToSpawn != null)
                 {
                     var content = Instantiate(prefabToSpawn, newImage.transform);
-                    content.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                    content.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, 180f, 0f));
 
                     // Pongo esto aqui, se podria borrar si da error, pero se supone que sin esta linea
                     // al detectar la carta el pokemon aparece al 100 por cien de su tamano al detectar la imagen
